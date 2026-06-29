@@ -202,17 +202,58 @@ def qty_table(headers, rows, total):
 
 
 # ============== SECTION SETUP ==============
+SKYLANCE_IMG = os.path.join(ASSET, "skylance_logo.png")
+SELA_IMG = os.path.join(ASSET, "sela_logo.png")
+
+
+def cell_right_border(cell, color=HAIRHEX, sz=6):
+    tcPr = cell._tc.get_or_add_tcPr(); b = OxmlElement("w:tcBorders")
+    e = OxmlElement("w:end"); e.set(qn("w:val"), "single"); e.set(qn("w:sz"), str(sz))
+    e.set(qn("w:space"), "0"); e.set(qn("w:color"), color); b.append(e); tcPr.append(b)
+
+
+def cover_lockup():
+    """Standalone Skylance + SELA logos side by side for the cover white space."""
+    t = doc.add_table(rows=2, cols=3); t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    no_borders(t)
+    w = [Cm(6.0), Cm(1.0), Cm(6.0)]
+    for row in t.rows:
+        for i, cw in enumerate(w):
+            row.cells[i].width = cw
+    # logos row
+    c0, cd, c2 = t.rows[0].cells
+    for c in (c0, cd, c2):
+        c.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+    p0 = c0.paragraphs[0]; p0.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p0.add_run().add_picture(SKYLANCE_IMG, height=Cm(1.75))
+    cell_right_border(c0)
+    p2 = c2.paragraphs[0]; p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p2.add_run().add_picture(SELA_IMG, height=Cm(0.78))
+    # labels row
+    l0, ld, l2 = t.rows[1].cells
+    for cell, lbl, val in ((l0, "CONTRACTOR", "Skylance Technical Services Co."),
+                           (l2, "CLIENT", "Jeddah Yacht Club & Marina")):
+        pp = cell.paragraphs[0]; pp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pp.paragraph_format.space_before = Pt(4)
+        r = pp.add_run(lbl); r.font.bold = True; r.font.size = Pt(8); r.font.color.rgb = CYAN
+        r2 = pp.add_run("\n" + val); r2.font.size = Pt(7.5); r2.font.color.rgb = GREY
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+
+
 sec0 = doc.sections[0]
-sec0.top_margin = Cm(2.9); sec0.bottom_margin = Cm(2.2)
+sec0.top_margin = Cm(1.5); sec0.bottom_margin = Cm(2.2)
 sec0.left_margin = Cm(2.0); sec0.right_margin = Cm(2.0)
 sec0.header_distance = Cm(0.4); sec0.footer_distance = Cm(0.4)
 FULLW = Cm(21.0)  # full-bleed band width = A4 width
-build_header(sec0, FULLW)
+# cover uses a standalone logo lockup (below), not the co-branded band header
 build_footer(sec0, FULLW)
 sec0.different_first_page_header_footer = False
 
 # ============== COVER ==============
-for _ in range(4):
+cover_lockup()
+hrc = doc.add_paragraph(); hrc.paragraph_format.space_after = Pt(0)
+pborder(hrc, "26B8EF", size=14, where="bottom", space=4)
+for _ in range(5):
     sp = doc.add_paragraph(); sp.paragraph_format.space_after = Pt(10)
 hr = doc.add_paragraph(); hr.alignment = WD_ALIGN_PARAGRAPH.CENTER
 pborder(hr, HAIRHEX, size=6, where="bottom", space=6)

@@ -177,8 +177,10 @@ def draw_brand(canvas, doc, cover=False):
     except Exception:
         pass
     # co-branded header band: Skylance logo + CR (left), SELA logo (right),
-    # CONTRACTOR / CLIENT labels and cyan rule (all baked into the image)
-    canvas.drawImage(HEADER_IMG, 0, PAGE_H - HDR_H, width=HDR_W, height=HDR_H, mask="auto")
+    # CONTRACTOR / CLIENT labels and cyan rule (all baked into the image).
+    # The cover page uses a standalone logo lockup instead of the band.
+    if not cover:
+        canvas.drawImage(HEADER_IMG, 0, PAGE_H - HDR_H, width=HDR_W, height=HDR_H, mask="auto")
     # footer band
     canvas.drawImage(FOOTER_IMG, 0, 0, width=FTR_W, height=FTR_H, mask="auto")
     # page-number line above footer band
@@ -205,15 +207,48 @@ doc = BaseDocTemplate(
     author="Skylance Technical Services",
 )
 frame = Frame(LM, FRAME_BOTTOM, PAGE_W - LM - RM, FRAME_TOP - FRAME_BOTTOM, id="f")
+COVER_TOP = PAGE_H - 1.5 * cm
+cover_frame = Frame(LM, FRAME_BOTTOM, PAGE_W - LM - RM, COVER_TOP - FRAME_BOTTOM, id="cf")
 doc.addPageTemplates([
-    PageTemplate(id="Cover", frames=[frame], onPage=on_cover),
+    PageTemplate(id="Cover", frames=[cover_frame], onPage=on_cover),
     PageTemplate(id="Body", frames=[frame], onPage=on_body),
 ])
+
+SKYLANCE_IMG = os.path.join(ASSET, "skylance_logo.png")
+SELA_IMG = os.path.join(ASSET, "sela_logo.png")
+
+
+def cover_logo_lockup():
+    """Standalone Skylance + SELA logos side by side for the cover white space."""
+    sky_h = 62.0
+    sky = Image(SKYLANCE_IMG, width=sky_h * 346.0 / 294.0, height=sky_h)
+    sela_h = 27.0
+    sela = Image(SELA_IMG, width=sela_h * 479.0 / 158.0, height=sela_h)
+    lbl = S("lbl", fontName="Helvetica-Bold", fontSize=8, leading=11,
+            textColor=CYAN, alignment=TA_CENTER)
+    sub = S("lblsub", fontName="Helvetica", fontSize=7.5, leading=10,
+            textColor=GREY, alignment=TA_CENTER)
+    cont = Paragraph('CONTRACTOR<br/><font color="#3A3A3A">Skylance Technical Services Co.</font>', lbl)
+    clnt = Paragraph('CLIENT<br/><font color="#3A3A3A">Jeddah Yacht Club &amp; Marina</font>', lbl)
+    t = Table([[sky, "", sela], [cont, "", clnt]],
+              colWidths=[210, 36, 210], hAlign="CENTER")
+    t.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
+        ("VALIGN", (0, 1), (-1, 1), "TOP"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("LINEAFTER", (0, 0), (0, 0), 0.8, HAIR),
+        ("TOPPADDING", (0, 1), (-1, 1), 12),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 4),
+    ]))
+    return t
 
 E = []
 
 # =================== COVER ===================
-E.append(Spacer(1, 150))
+E.append(Spacer(1, 18))
+E.append(cover_logo_lockup())
+E.append(HRFlowable(width="100%", thickness=1.4, color=CYAN, spaceBefore=14, spaceAfter=0))
+E.append(Spacer(1, 120))
 E.append(HRFlowable(width="86%", thickness=0.8, color=HAIR, hAlign="CENTER", spaceAfter=18))
 E.append(Paragraph("TECHNICAL SUBMITTAL",
                    S("ttl", fontName="Helvetica-Bold", fontSize=29, leading=34,
