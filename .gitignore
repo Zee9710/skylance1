@@ -1,2 +1,7 @@
-# Large reference template (lives on main; used only for styling)
+# Large source submittals (live on main; used as inputs to build_merged.py)
 Marine Structure Rehabilitation - Technical Submittal.pdf
+Technical Submittal Skylance- Gangway Cable Tray Repairs Sela JYC.pdf
+
+# transient build artefacts
+_body_main.pdf
+_div*.pdf
