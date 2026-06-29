@@ -255,7 +255,7 @@ def content_flowables():
         "The objective of this scope of work is to restore structural integrity, improve operational "
         "safety and appearance, prevent further corrosion and deterioration, and extend the service life "
         "of the marina assets through comprehensive maintenance, repair and protective-coating works.", body))
-    E.append(h2("In delivering the works, the Contractor shall:"))
+    E.append(h2("In delivering the works, we shall:"))
     E.append(blist([
         "Conduct a detailed site survey and verification of quantities prior to commencement.",
         "Supply all labour, supervision, tools, equipment, materials, consumables and marine access equipment required.",
@@ -307,7 +307,8 @@ def content_flowables():
         "of the gangway along its track. The proposed scope comprises removal of the existing worn rollers, "
         "supply of new replacement rollers matching the original OEM specification (material, diameter and "
         "bearing type), and reinstallation complete with lubrication to restore free and even rolling movement. "
-        "Additional PVC rollers shall be supplied as operational spare stock.", body))
+        "Additional PVC rollers shall be supplied as operational spare stock. Refer to the "
+        "Pontoon Roller drawing in Appendix B.", body))
 
     E.append(h2("4.3  Gangway Ramp Rubbing Plate"))
     E.append(Paragraph(
@@ -315,7 +316,8 @@ def content_flowables():
         "shore / vessel interface, was found worn and locally deformed due to repeated contact during landing. "
         "The proposed scope comprises removal of the damaged plate, fabrication and supply of a new rubbing "
         "plate of matching material and thickness, and re-fixing in accordance with the original design to "
-        "reinstate a smooth, protected landing surface.", body))
+        "reinstate a smooth, protected landing surface. Refer to the Gangway Pontoon Ramp and "
+        "Shore Ramp drawings in Appendix B.", body))
 
     E.append(h2("4.4  Gangway Shore Pivot and Pin"))
     E.append(Paragraph(
@@ -323,7 +325,7 @@ def content_flowables():
         "connection, were found to exhibit wear, elongation and corrosion resulting in excessive play. The "
         "proposed scope comprises removal of the existing pivot pin and bushing, inspection and repair of the "
         "pivot bracket as required, and supply and installation of a new pivot pin and bushing to restore "
-        "proper, secure articulation.", body))
+        "proper, secure articulation. Refer to the Gangway Shore Pivot drawing in Appendix B.", body))
 
     E.append(h2("4.5  Teflon Wear Protection"))
     E.append(blist([
@@ -332,7 +334,7 @@ def content_flowables():
     ]))
 
     E.append(h2("4.6  Structural Steel Rehabilitation and Coating"))
-    E.append(Paragraph("Where applicable, the Contractor shall clean steel surfaces by mechanical "
+    E.append(Paragraph("Where applicable, we shall clean steel surfaces by mechanical "
                        "preparation or approved blasting method, remove corrosion and contaminants, repaint "
                        "the gangway H-beam support structures and apply the approved marine-grade "
                        "anti-corrosion coating system below (or equivalent):", lead))
@@ -390,7 +392,7 @@ def content_flowables():
     # 6. PONTOON SURFACE & PILE
     E.append(h1("6", "Pontoon Surface and Pile Refurbishment"))
     E.append(applic_p("Dock A, B, C, K &amp; Slipway Pontoon"))
-    E.append(Paragraph("The Contractor shall prepare all pontoon surfaces, remove loose coatings and "
+    E.append(Paragraph("We shall prepare all pontoon surfaces, remove loose coatings and "
                        "corrosion, repaint all pontoon surfaces, and prepare and repaint the marina piles, "
                        "providing coating system data sheets and warranty information.", body))
 
@@ -429,11 +431,11 @@ def content_flowables():
 
     # 7. FIBERGLASS PILE CAP
     E.append(h1("7", "Fiberglass Pile Cap Replacement"))
-    E.append(Paragraph("The Contractor shall supply and install new fiberglass pile caps as follows:", lead))
+    E.append(Paragraph("We shall supply and install new fiberglass pile caps as follows:", lead))
     E.append(qty_table(["Location", "Quantity"],
                        [["Dock A", "9"], ["Dock B", "13"], ["Dock C", "9"], ["Dock D", "9"], ["Dock K", "5"]],
                        ["Total", "45 Pile Caps"]))
-    E.append(Paragraph("The Contractor shall:", lead))
+    E.append(Paragraph("We shall:", lead))
     E.append(blist([
         "Remove existing damaged pile caps.",
         "Supply marine-grade fiberglass pile caps.",
@@ -443,7 +445,7 @@ def content_flowables():
     # 8. PILE BRACKET & WEAR PAD
     E.append(h1("8", "Pile Bracket and Wear Pad Repairs"))
     E.append(applic_p("Dock D &amp; K"))
-    E.append(Paragraph("The Contractor shall:", lead))
+    E.append(Paragraph("We shall:", lead))
     E.append(blist([
         "Remove damaged wear pads.",
         "Supply and install replacement wear pads.",
@@ -464,8 +466,8 @@ def content_flowables():
     ]))
     E.append(h2("9.2  Navigation Poles"))
     E.append(blist([
-        "Remove corrosion and repaint navigation poles.",
-        "Replace heavily corroded foundation anchor bolts.",
+        "Remove corrosion and repaint navigation poles using the steel structure coating system (refer Section 13).",
+        "Replace heavily corroded foundation anchor bolts (refer Appendix C).",
     ]))
     E.append(h2("9.3  Manhole Repair"))
     E.append(blist([
@@ -502,10 +504,10 @@ def content_flowables():
 
     # 11. SLIPWAY PONTOON
     E.append(h1("11", "Slipway Pontoon Structural Repairs"))
-    E.append(Paragraph("The Contractor shall:", lead))
+    E.append(Paragraph("We shall:", lead))
     E.append(blist([
         "Inspect and repair stainless steel H-beam attached to quay wall.",
-        "Reinstall and secure foundation anchor bolts.",
+        "Reinstall and secure foundation anchor bolts (refer Appendix C).",
         "Repair damaged / spalled concrete around foundation areas.",
         "Reinstate concrete using approved marine repair materials (refer Section 12).",
         "Ensure structural integrity and long-term durability of the installation.",
@@ -564,7 +566,7 @@ def content_flowables():
 
     # 14. DELIVERABLES
     E.append(h1("14", "Deliverables"))
-    E.append(Paragraph("The Contractor shall provide:", lead))
+    E.append(Paragraph("We shall provide:", lead))
     E.append(blist([
         "Detailed work programme.",
         "Material submittals and technical data sheets.",
