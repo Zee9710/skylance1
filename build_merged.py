@@ -369,7 +369,7 @@ def content_flowables():
         "marine-grade cable tray and approved support systems of matching size and material, and reinstatement "
         "of the cabling with adequate securing to restore safe, protected cable routing and alignment. "
         "Cable tray fabrication data and drawings are provided in Appendix D, and the proposed "
-        "replacement power cable data sheets (1×16 mm² and 1×70 mm² NCU-PVC 450/750 V to "
+        "earthing cable data sheets (1×16 mm² and 1×70 mm² NCU-PVC 450/750 V to "
         "IEC 60227) in Appendix E.", body))
 
     # 5. JOINT PLATES
@@ -587,7 +587,7 @@ def content_flowables():
                     ["B", "Gangway Drawings — GA / repair details (roller, ramp, shore pivot) and roller guide / wear plate"],
                     ["C", "Hilti Anchor System Technical Data — HIT-HY 200-R V3 Injection Mortar"],
                     ["D", "Cable Tray Data — SS316 cable tray, covers and slotted C-channel support"],
-                    ["E", "Cable Technical Data Sheets — 1×16 mm² and 1×70 mm² NCU-PVC 450/750 V (IEC 60227)"]],
+                    ["E", "Earthing Cable Data Sheets — 1×16 mm² and 1×70 mm² NCU-PVC 450/750 V (IEC 60227)"]],
                    [0.16, 0.84]),
     ]))
     return E
@@ -785,8 +785,8 @@ build_divider("D", "Cable Tray Data",
               ["SS316 cable tray (P-Type) and covers — 300 mm and 400 mm sizes.",
                "SS316 slotted C-channel support.",
                "Supports the cable tray reinstatement works (Section 4.9)."], D_div, DD)
-build_divider("E", "Cable Technical Data Sheets",
-              ["1×16 mm² and 1×70 mm² NCU-PVC 450/750 V power cables (IEC 60227).",
+build_divider("E", "Earthing Cable Data Sheets",
+              ["1×16 mm² and 1×70 mm² NCU-PVC 450/750 V earthing cables (IEC 60227).",
                "Supports the cabling reinstatement works (Section 4.9)."], E_div, DE)
 
 # assemble final
@@ -801,7 +801,7 @@ final.insert_pdf(fitz.open(DC))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=7, to_page=33)   # pp 8-34 Hilti (core datasheet only)
 final.insert_pdf(fitz.open(DD))                                     # App D divider: Cable Tray Data
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=54, to_page=58)  # pp 55-59 cable tray data
-final.insert_pdf(fitz.open(DE))                                     # App E divider: Cable Technical Data Sheets
+final.insert_pdf(fitz.open(DE))                                     # App E divider: Earthing Cable Data Sheets
 final.insert_pdf(fitz.open(SRC_CABLE16))                            # 1x16 mm² cable TD
 final.insert_pdf(fitz.open(SRC_CABLE70))                            # 1x70 mm² cable TD
 final.save(OUT)
