@@ -70,9 +70,9 @@ def S(name, **kw):
 
 body = S("body", fontName="Helvetica", fontSize=10, leading=14.5, textColor=INK,
          alignment=TA_JUSTIFY, spaceAfter=7)
-lead = S("lead", parent=body, spaceAfter=4)
+lead = S("lead", parent=body, spaceAfter=4, keepWithNext=1)
 applic = S("applic", fontName="Helvetica-Oblique", fontSize=9.5, leading=13,
-           textColor=GREY, spaceBefore=1, spaceAfter=7)
+           textColor=GREY, spaceBefore=1, spaceAfter=7, keepWithNext=1)
 bullet = S("bullet", fontName="Helvetica", fontSize=10, leading=13.5, textColor=INK, spaceAfter=0)
 
 
@@ -88,22 +88,29 @@ def h1(num, title):
     ]))
     t.spaceBefore = 14
     t.spaceAfter = 8
+    t.keepWithNext = 1
     return t
 
 
 def h2(text):
-    return Paragraph(f'<b>{text}</b>', S("h2", fontName="Helvetica-Bold", fontSize=11, leading=14,
-                                         textColor=CYAN, spaceBefore=10, spaceAfter=4))
+    p = Paragraph(f'<b>{text}</b>', S("h2", fontName="Helvetica-Bold", fontSize=11, leading=14,
+                                      textColor=CYAN, spaceBefore=10, spaceAfter=4, keepWithNext=1))
+    p.keepWithNext = 1
+    return p
 
 
 def applic_p(text):
-    return Paragraph(f'<font color="#26B8EF"><b><i>Applicable to:&nbsp;&nbsp;</i></b></font>'
-                     f'<i><font color="#3A3A3A">{text}</font></i>', applic)
+    p = Paragraph(f'<font color="#26B8EF"><b><i>Applicable to:&nbsp;&nbsp;</i></b></font>'
+                  f'<i><font color="#3A3A3A">{text}</font></i>', applic)
+    p.keepWithNext = 1
+    return p
 
 
 def micro(text):
-    return Paragraph(f'<b>{text}</b>', S("micro", fontName="Helvetica-Bold", fontSize=10, leading=13,
-                                         textColor=INK, spaceBefore=4, spaceAfter=3))
+    p = Paragraph(f'<b>{text}</b>', S("micro", fontName="Helvetica-Bold", fontSize=10, leading=13,
+                                      textColor=INK, spaceBefore=4, spaceAfter=3, keepWithNext=1))
+    p.keepWithNext = 1
+    return p
 
 
 def blist(items):
