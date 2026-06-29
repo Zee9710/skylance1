@@ -1,241 +1,328 @@
 #!/usr/bin/env python3
-"""Generate the Skylance / SELA Technical Submittal as a polished PDF."""
+"""Skylance Technical Submittal - JYC Marina Infrastructure.
+Rendered in the Skylance house style using brand assets cropped from the
+company template (header band with logo + CR, footer contact bar, watermark)."""
+import os
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm, mm
+from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.platypus import (
     BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table, TableStyle,
-    ListFlowable, ListItem, KeepTogether, NextPageTemplate, PageBreak, HRFlowable,
+    ListFlowable, ListItem, NextPageTemplate, PageBreak, HRFlowable, Image,
 )
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle as PS
+from reportlab.lib.utils import ImageReader
 
-# ---------------- palette ----------------
-NAVY = colors.HexColor("#0B1F3A")
-STEEL = colors.HexColor("#1C4E80")
-ACCENT = colors.HexColor("#0E7690")
-GREY = colors.HexColor("#3C434C")
-LIGHT = colors.HexColor("#7A8694")
-HAIR = colors.HexColor("#D5DEE7")
-ROW = colors.HexColor("#EAF1F7")
-SOFT = colors.HexColor("#F2F6FA")
+ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "brand_assets")
+HEADER_IMG = os.path.join(ASSET, "crop_header.png")
+FOOTER_IMG = os.path.join(ASSET, "crop_footer.png")
+WM_IMG = os.path.join(ASSET, "crop_watermark.png")
+
+# ---------------- palette (sampled from template) ----------------
+CYAN = colors.HexColor("#26B8EF")
+BLACK = colors.HexColor("#111111")
+INK = colors.HexColor("#1F1F1F")
+GREY = colors.HexColor("#3A3A3A")
+SOFTGREY = colors.HexColor("#888888")
+ROWGREY = colors.HexColor("#F2F2F2")
+HAIR = colors.HexColor("#CFCFCF")
 
 PAGE_W, PAGE_H = A4
-LM = RM = 2.0 * cm
-TM = 2.7 * cm
-BM = 1.9 * cm
+LM = RM = 1.9 * cm
 
-styles = getSampleStyleSheet()
+# header band geometry (image aspect 2481 x 322)
+HDR_W = PAGE_W
+HDR_H = PAGE_W * (322.0 / 2481.0)
+# footer band geometry (image 2481 x 141)
+FTR_W = PAGE_W
+FTR_H = PAGE_W * (141.0 / 2481.0)
+
+# content frame
+FRAME_TOP = PAGE_H - HDR_H - 26          # leave gap + cyan rule under header
+FRAME_BOTTOM = FTR_H + 20                 # footer band + page-no line
+TM = PAGE_H - FRAME_TOP
+BM = FRAME_BOTTOM
+
+DOC_NO = "TS-SL-260629"
+REV = "Rev A – For Design Review"
+FOOTER_LINE = f"TS-SL-260629  |  {REV}  |  Confidential"
 
 
 def S(name, **kw):
-    return ParagraphStyle(name, **kw)
+    return PS(name, **kw)
 
 
-body = S("body", fontName="Helvetica", fontSize=10, leading=14.5, textColor=GREY,
+body = S("body", fontName="Helvetica", fontSize=10, leading=14.5, textColor=INK,
          alignment=TA_JUSTIFY, spaceAfter=7)
-intro = S("intro", parent=body, alignment=TA_LEFT)
+lead = S("lead", parent=body, spaceAfter=4)
 applic = S("applic", fontName="Helvetica-Oblique", fontSize=9.5, leading=13,
            textColor=GREY, spaceBefore=1, spaceAfter=7)
-micro = S("micro", fontName="Helvetica-Bold", fontSize=10, leading=13, textColor=NAVY,
-          spaceBefore=4, spaceAfter=3)
-lead = S("lead", parent=body, spaceAfter=4)
-bullet = S("bullet", fontName="Helvetica", fontSize=10, leading=13.5, textColor=GREY,
+bullet = S("bullet", fontName="Helvetica", fontSize=10, leading=13.5, textColor=INK,
            spaceAfter=0)
 
 
 def h1(num, title):
-    t = Table(
-        [[Paragraph(f'<font color="#0E7690">{num}.</font>&nbsp;&nbsp;'
-                    f'<font color="#0B1F3A">{title.upper()}</font>',
-                    S("h1", fontName="Helvetica-Bold", fontSize=13, leading=16))]],
-        colWidths=[PAGE_W - LM - RM],
-    )
+    """Black full-width bar, white bold text, cyan left accent."""
+    cell = Paragraph(
+        f'<font color="white"><b>{num}.&nbsp;&nbsp;{title.upper()}</b></font>',
+        S("h1", fontName="Helvetica-Bold", fontSize=11.5, leading=15, textColor=colors.white))
+    t = Table([[cell]], colWidths=[PAGE_W - LM - RM])
     t.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 1.1, STEEL),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 2),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("BACKGROUND", (0, 0), (-1, -1), BLACK),
+        ("LINEBEFORE", (0, 0), (0, -1), 3.2, CYAN),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
     ]))
+    t.spaceBefore = 14
+    t.spaceAfter = 8
     return t
 
 
-def h2(num, title):
-    return Paragraph(
-        f'<font color="#1C4E80"><b>{num}&nbsp;&nbsp;{title}</b></font>',
-        S("h2", fontName="Helvetica-Bold", fontSize=11, leading=14,
-          spaceBefore=10, spaceAfter=3, textColor=STEEL))
+def h2(text):
+    return Paragraph(f'<b>{text}</b>',
+                     S("h2", fontName="Helvetica-Bold", fontSize=11, leading=14,
+                       textColor=CYAN, spaceBefore=10, spaceAfter=4))
 
 
 def applic_p(text):
     return Paragraph(
-        f'<font color="#0E7690"><b><i>Applicable to:&nbsp;&nbsp;</i></b></font>'
-        f'<i>{text}</i>', applic)
+        f'<font color="#26B8EF"><b><i>Applicable to:&nbsp;&nbsp;</i></b></font>'
+        f'<i><font color="#3A3A3A">{text}</font></i>', applic)
+
+
+def micro(text):
+    return Paragraph(f'<b>{text}</b>',
+                     S("micro", fontName="Helvetica-Bold", fontSize=10, leading=13,
+                       textColor=INK, spaceBefore=4, spaceAfter=3))
 
 
 def blist(items):
-    li = [ListItem(Paragraph(t, bullet), leftIndent=14, spaceAfter=4,
-                   value=None, bulletColor=ACCENT) for t in items]
-    return ListFlowable(
-        li, bulletType="bullet", start="•", bulletFontSize=8,
-        bulletColor=ACCENT, leftIndent=16, bulletOffsetY=1, spaceBefore=1, spaceAfter=6,
-    )
+    li = [ListItem(Paragraph(t, bullet), leftIndent=14, spaceAfter=5,
+                   bulletColor=BLACK) for t in items]
+    return ListFlowable(li, bulletType="bullet", start="•", bulletFontSize=8,
+                        bulletColor=BLACK, leftIndent=18, bulletOffsetY=1,
+                        spaceBefore=2, spaceAfter=7)
 
 
 def qty_table(headers, rows, total):
     data = [headers] + rows + [total]
-    w = (PAGE_W - LM - RM)
-    t = Table(data, colWidths=[w * 0.55, w * 0.45], hAlign="LEFT")
+    w = PAGE_W - LM - RM
+    t = Table(data, colWidths=[w * 0.5, w * 0.5], hAlign="LEFT")
     style = [
-        ("BACKGROUND", (0, 0), (-1, 0), NAVY),
+        ("BACKGROUND", (0, 0), (-1, 0), BLACK),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 9.5),
         ("ALIGN", (1, 0), (1, -1), "CENTER"),
-        ("ALIGN", (0, 0), (0, -1), "LEFT"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("FONTNAME", (0, 1), (0, -1), "Helvetica-Bold"),
-        ("FONTNAME", (1, 1), (1, -2), "Helvetica"),
-        ("TEXTCOLOR", (0, 1), (-1, -2), GREY),
+        ("TEXTCOLOR", (0, 1), (-1, -2), INK),
         ("GRID", (0, 0), (-1, -1), 0.6, HAIR),
-        ("TOPPADDING", (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ("LEFTPADDING", (0, 0), (-1, -1), 8),
-        # total row
-        ("BACKGROUND", (0, -1), (-1, -1), STEEL),
-        ("TEXTCOLOR", (0, -1), (-1, -1), colors.white),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 9),
+        ("BACKGROUND", (0, -1), (-1, -1), BLACK),
+        ("TEXTCOLOR", (0, -1), (-1, -1), CYAN),
         ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
     ]
     for i in range(1, len(rows) + 1):
         if i % 2 == 0:
-            style.append(("BACKGROUND", (0, i), (-1, i), ROW))
+            style.append(("BACKGROUND", (0, i), (-1, i), ROWGREY))
     t.setStyle(TableStyle(style))
+    t.spaceAfter = 6
+    return t
+
+
+def coat_table(headers, rows):
+    data = [headers] + rows
+    w = PAGE_W - LM - RM
+    cw = [w * 0.22, w * 0.28, w * 0.50]
+    cells = [[Paragraph(f'<b><font color="white">{c}</font></b>',
+                        S("th", fontName="Helvetica-Bold", fontSize=9.5, leading=12))
+              for c in headers]]
+    for r in rows:
+        cells.append([Paragraph(x, S("td", fontName="Helvetica", fontSize=9.5,
+                                     leading=12, textColor=INK)) for x in r])
+    t = Table(cells, colWidths=cw, hAlign="LEFT")
+    style = [
+        ("BACKGROUND", (0, 0), (-1, 0), BLACK),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.6, HAIR),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+    ]
+    for i in range(1, len(rows) + 1):
+        if i % 2 == 0:
+            style.append(("BACKGROUND", (0, i), (-1, i), ROWGREY))
+    t.setStyle(TableStyle(style))
+    t.spaceAfter = 6
     return t
 
 
 # ---------------- page furniture ----------------
-def header_footer(canvas, doc, cover=False):
+def draw_brand(canvas, doc, cover=False):
     canvas.saveState()
-    if not cover:
-        y = PAGE_H - 1.35 * cm
-        canvas.setFont("Helvetica-Bold", 14)
-        canvas.setFillColor(NAVY)
-        canvas.drawString(LM, y, "SELA")
-        canvas.setFont("Helvetica-Bold", 14)
-        canvas.setFillColor(STEEL)
-        canvas.drawRightString(PAGE_W - RM, y, "SKYLANCE")
-        canvas.setFont("Helvetica", 6)
-        canvas.setFillColor(LIGHT)
-        canvas.drawString(LM, y - 9, "Client / Consultant")
-        canvas.drawRightString(PAGE_W - RM, y - 9, "Marine Infrastructure Contractor")
-        canvas.setStrokeColor(STEEL)
-        canvas.setLineWidth(0.8)
-        canvas.line(LM, y - 14, PAGE_W - RM, y - 14)
-    # footer
-    fy = 1.25 * cm
-    canvas.setStrokeColor(HAIR)
-    canvas.setLineWidth(0.5)
-    canvas.line(LM, fy + 6, PAGE_W - RM, fy + 6)
-    canvas.setFont("Helvetica", 7)
-    canvas.setFillColor(LIGHT)
-    canvas.drawString(LM, fy - 2,
-                      "Technical Submittal  |  Marina Infrastructure Maintenance & Rehabilitation Works")
-    canvas.drawRightString(PAGE_W - RM, fy - 2, f"Page {canvas.getPageNumber()}")
+    # watermark (centered in content area, faint)
+    try:
+        wm = ImageReader(WM_IMG)
+        iw, ih = wm.getSize()
+        tw = PAGE_W * 0.62
+        th = tw * ih / iw
+        canvas.drawImage(wm, (PAGE_W - tw) / 2, (PAGE_H - th) / 2 - 10,
+                         width=tw, height=th, mask="auto")
+    except Exception:
+        pass
+    # header band
+    canvas.drawImage(HEADER_IMG, 0, PAGE_H - HDR_H, width=HDR_W, height=HDR_H, mask="auto")
+    # cyan rule below header
+    ry = PAGE_H - HDR_H - 14
+    canvas.setStrokeColor(CYAN)
+    canvas.setLineWidth(1.4)
+    canvas.line(LM, ry, PAGE_W - RM, ry)
+    # footer band
+    canvas.drawImage(FOOTER_IMG, 0, 0, width=FTR_W, height=FTR_H, mask="auto")
+    # page-number line above footer band
+    canvas.setFont("Helvetica", 7.5)
+    canvas.setFillColor(SOFTGREY)
+    pno = canvas.getPageNumber()
+    canvas.drawCentredString(PAGE_W / 2, FTR_H + 6,
+                             f"Page {pno}  |  {FOOTER_LINE}")
     canvas.restoreState()
 
 
-def on_cover(canvas, doc):
-    header_footer(canvas, doc, cover=True)
+def on_cover(c, d):
+    draw_brand(c, d, cover=True)
 
 
-def on_body(canvas, doc):
-    header_footer(canvas, doc, cover=False)
+def on_body(c, d):
+    draw_brand(c, d, cover=False)
 
 
-# ---------------- document ----------------
 doc = BaseDocTemplate(
     "Technical Submittal - JYC Marina Infrastructure (Skylance).pdf",
     pagesize=A4, leftMargin=LM, rightMargin=RM, topMargin=TM, bottomMargin=BM,
     title="Technical Submittal - JYC Marina Infrastructure",
-    author="Skylance",
+    author="Skylance Technical Services",
 )
-frame_cover = Frame(LM, BM, PAGE_W - LM - RM, PAGE_H - 1.6 * cm - BM, id="cover")
-frame_body = Frame(LM, BM, PAGE_W - LM - RM, PAGE_H - TM - BM, id="body")
+frame = Frame(LM, FRAME_BOTTOM, PAGE_W - LM - RM, FRAME_TOP - FRAME_BOTTOM, id="f")
 doc.addPageTemplates([
-    PageTemplate(id="Cover", frames=[frame_cover], onPage=on_cover),
-    PageTemplate(id="Body", frames=[frame_body], onPage=on_body),
+    PageTemplate(id="Cover", frames=[frame], onPage=on_cover),
+    PageTemplate(id="Body", frames=[frame], onPage=on_body),
 ])
 
 E = []
 
-# ---------- COVER ----------
-brand = Table([[
-    Paragraph('<font color="#0B1F3A" size="22"><b>SELA</b></font><br/>'
-              '<font color="#7A8694" size="8">Client / Consultant</font>',
-              S("bl", fontName="Helvetica", leading=24, alignment=TA_LEFT)),
-    Paragraph('<font color="#1C4E80" size="22"><b>SKYLANCE</b></font><br/>'
-              '<font color="#7A8694" size="8">Marine Infrastructure Contractor</font>',
-              S("br", fontName="Helvetica", leading=24, alignment=2)),
-]], colWidths=[(PAGE_W - LM - RM) / 2] * 2)
-brand.setStyle(TableStyle([
-    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-    ("LEFTPADDING", (0, 0), (-1, -1), 0),
-    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-]))
-E.append(brand)
-E.append(Spacer(1, 6))
-E.append(HRFlowable(width="100%", thickness=1.6, color=ACCENT, spaceAfter=10))
-E.append(Spacer(1, 90))
+# =================== COVER ===================
+E.append(Spacer(1, 150))
+E.append(HRFlowable(width="86%", thickness=0.8, color=HAIR, hAlign="CENTER", spaceAfter=18))
+E.append(Paragraph("TECHNICAL SUBMITTAL",
+                   S("ttl", fontName="Helvetica-Bold", fontSize=29, leading=34,
+                     textColor=BLACK, alignment=TA_CENTER, spaceAfter=10)))
+E.append(Paragraph("Marina Infrastructure Maintenance and Rehabilitation Works",
+                   S("sub", fontName="Helvetica-Bold", fontSize=13, leading=17,
+                     textColor=CYAN, alignment=TA_CENTER, spaceAfter=5)))
+E.append(Paragraph("Jeddah Yacht Club &amp; Marina (JYC)",
+                   S("sub2", fontName="Helvetica", fontSize=11.5, leading=15,
+                     textColor=GREY, alignment=TA_CENTER, spaceAfter=18)))
+E.append(HRFlowable(width="86%", thickness=1.4, color=CYAN, hAlign="CENTER", spaceAfter=26))
 
-E.append(Paragraph('<b>JEDDAH YACHT CLUB &amp; MARINA&nbsp;&nbsp;(JYC)</b>',
-                   S("c1", fontName="Helvetica-Bold", fontSize=12, leading=16,
-                     textColor=ACCENT, alignment=TA_CENTER, spaceAfter=4)))
-E.append(Paragraph('Marina Infrastructure Maintenance and Rehabilitation Works',
-                   S("c2", fontName="Helvetica", fontSize=13, leading=17,
-                     textColor=GREY, alignment=TA_CENTER, spaceAfter=26)))
-E.append(Paragraph('TECHNICAL SUBMITTAL',
-                   S("ttl", fontName="Helvetica-Bold", fontSize=33, leading=38,
-                     textColor=NAVY, alignment=TA_CENTER, spaceAfter=8)))
-E.append(Paragraph('Inspection &middot; Repair &middot; Refurbishment &middot; '
-                   'Replacement &middot; Protective Maintenance',
-                   S("c3", fontName="Helvetica-Oblique", fontSize=10, leading=14,
-                     textColor=LIGHT, alignment=TA_CENTER)))
-E.append(Spacer(1, 80))
-
-ctl_rows = [
-    ("Project", "Marina Infrastructure Maintenance & Rehabilitation Works"),
-    ("Client", "Jeddah Yacht Club & Marina (JYC) / SELA"),
-    ("Contractor", "Skylance"),
-    ("Document", "Technical Submittal"),
-    ("Document Ref.", "SKL-JYC-TS-001  ·  Rev. 0"),
-    ("Date", "June 2026"),
+ctl = [
+    ("Project", "Jeddah Yacht Club & Marina (JYC)"),
+    ("Client / Consultant", "SELA"),
+    ("Document No.", DOC_NO),
+    ("Revision", REV),
+    ("Prepared By", "SKYLANCE TECHNICAL SERVICES"),
+    ("Date", "29 Jun 2026"),
+    ("Classification", "Technical Submittal – For Review & Approval"),
 ]
-ctl = Table(
-    [[Paragraph(f'<b>{k}</b>', S("k", fontName="Helvetica-Bold", fontSize=9.5,
-                                 textColor=colors.white, leading=12)),
-      Paragraph(v, S("v", fontName="Helvetica", fontSize=9.5, textColor=GREY, leading=12))]
-     for k, v in ctl_rows],
-    colWidths=[(PAGE_W - LM - RM) * 0.28, (PAGE_W - LM - RM) * 0.72], hAlign="CENTER",
-)
-cstyle = [
-    ("BACKGROUND", (0, 0), (0, -1), NAVY),
+tbl = Table(
+    [[Paragraph(f'<b><font color="white">{k}</font></b>',
+                S("k", fontName="Helvetica-Bold", fontSize=9.5, leading=12)),
+      Paragraph(v, S("v", fontName="Helvetica", fontSize=9.5, leading=12, textColor=INK))]
+     for k, v in ctl],
+    colWidths=[(PAGE_W - LM - RM) * 0.30, (PAGE_W - LM - RM) * 0.70], hAlign="CENTER")
+cs = [
+    ("BACKGROUND", (0, 0), (0, -1), BLACK),
     ("GRID", (0, 0), (-1, -1), 0.6, HAIR),
     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-    ("TOPPADDING", (0, 0), (-1, -1), 6),
-    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ("TOPPADDING", (0, 0), (-1, -1), 7),
+    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
     ("LEFTPADDING", (0, 0), (-1, -1), 9),
 ]
-for i in range(len(ctl_rows)):
+for i in range(len(ctl)):
     if i % 2 == 1:
-        cstyle.append(("BACKGROUND", (1, i), (1, i), SOFT))
-ctl.setStyle(TableStyle(cstyle))
-E.append(ctl)
+        cs.append(("BACKGROUND", (1, i), (1, i), ROWGREY))
+tbl.setStyle(TableStyle(cs))
+E.append(tbl)
+E.append(Spacer(1, 22))
+E.append(Paragraph(
+    "This document is prepared by Skylance Technical Services for submission to the "
+    "Client / Consultant for review and approval.",
+    S("disc", fontName="Helvetica-Oblique", fontSize=8.5, leading=12, textColor=SOFTGREY,
+      alignment=TA_CENTER, spaceAfter=3)))
+E.append(Paragraph(
+    "All specified methods and materials are subject to final approval. Actual performance "
+    "may vary depending on site conditions and maintenance practices.",
+    S("disc2", fontName="Helvetica-Oblique", fontSize=8.5, leading=12, textColor=SOFTGREY,
+      alignment=TA_CENTER)))
 
 E.append(NextPageTemplate("Body"))
 E.append(PageBreak())
 
-# ---------- 1. INTRODUCTION ----------
+# =================== TABLE OF CONTENTS ===================
+toc_rows = [
+    ("1", "Introduction", "3"),
+    ("2", "Objective", "3"),
+    ("3", "Scope of Works", "3"),
+    ("4", "Gangway Rehabilitation Works", "4"),
+    ("5", "Pontoon Joint Plate Repairs", "5"),
+    ("6", "Pontoon Surface and Pile Refurbishment", "5"),
+    ("7", "Fiberglass Pile Cap Replacement", "6"),
+    ("8", "Pile Bracket and Wear Pad Repairs", "6"),
+    ("9", "Main Wave Breaker and Navigation Pole Rehabilitation", "6"),
+    ("10", "Quay Wall Surface Repainting", "7"),
+    ("11", "Slipway Pontoon Structural Repairs", "7"),
+]
+hdr = Table([[Paragraph('<b><font color="white">TABLE OF CONTENTS</font></b>',
+                        S("toch", fontName="Helvetica-Bold", fontSize=11, leading=14))]],
+            colWidths=[PAGE_W - LM - RM])
+hdr.setStyle(TableStyle([
+    ("BACKGROUND", (0, 0), (-1, -1), BLACK),
+    ("LINEBEFORE", (0, 0), (0, -1), 3.2, CYAN),
+    ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ("LEFTPADDING", (0, 0), (-1, -1), 10),
+]))
+E.append(hdr)
+E.append(Spacer(1, 4))
+w = PAGE_W - LM - RM
+rows = []
+for n, t, pg in toc_rows:
+    rows.append([
+        Paragraph(f'<b>{n}</b>', S("tn", fontName="Helvetica-Bold", fontSize=9.5, textColor=INK)),
+        Paragraph(t, S("tt", fontName="Helvetica", fontSize=9.5, textColor=GREY)),
+        Paragraph(pg, S("tp", fontName="Helvetica", fontSize=9.5, textColor=GREY)),
+    ])
+toc = Table(rows, colWidths=[w * 0.07, w * 0.83, w * 0.10])
+ts = [
+    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ("LINEBELOW", (0, 0), (-1, -1), 0.5, HAIR),
+    ("ALIGN", (2, 0), (2, -1), "RIGHT"),
+    ("LINEBEFORE", (1, 0), (1, -1), 2.2, CYAN),
+    ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ("LEFTPADDING", (1, 0), (1, -1), 10),
+]
+for i in range(len(rows)):
+    if i % 2 == 1:
+        ts.append(("BACKGROUND", (0, i), (-1, i), ROWGREY))
+toc.setStyle(TableStyle(ts))
+E.append(toc)
+E.append(PageBreak())
+
+# =================== 1. INTRODUCTION ===================
 E.append(h1("1", "Introduction"))
 E.append(Paragraph(
     "This document has been developed to describe the technical details of the Jeddah Yacht Club "
@@ -245,18 +332,18 @@ E.append(Paragraph(
     "marine assets.", body))
 E.append(Paragraph(
     "Jeddah Yacht Club &amp; Marina (JYC) has invited qualified marine infrastructure contractors to "
-    "undertake these works. Skylance presents this Technical Submittal in response, setting out the "
-    "structure-wise scope of work, methods and material standards to be applied across the marina in "
-    "accordance with applicable Saudi Arabian regulations and recognised marine industry standards.",
-    body))
+    "undertake these works. Skylance Technical Services presents this Technical Submittal in response, "
+    "setting out the structure-wise scope of work, methods and material standards to be applied across "
+    "the marina in accordance with applicable Saudi Arabian regulations and recognised marine industry "
+    "standards.", body))
 
-# ---------- 2. OBJECTIVE ----------
+# =================== 2. OBJECTIVE ===================
 E.append(h1("2", "Objective"))
 E.append(Paragraph(
     "The objective of this scope of work is to restore structural integrity, improve operational "
     "safety, prevent further corrosion and extend the service life of marina assets through "
     "comprehensive maintenance works.", body))
-E.append(Paragraph("In delivering the works, the Contractor shall:", micro))
+E.append(h2("In delivering the works, the Contractor shall:"))
 E.append(blist([
     "Conduct a detailed site survey and verification of quantities prior to commencement.",
     "Supply all labour, supervision, tools, equipment, materials, consumables and marine access equipment required.",
@@ -267,11 +354,12 @@ E.append(blist([
     "Offer warranty on all works completed.",
 ]))
 
-# ---------- 3. SCOPE OF WORKS ----------
+# =================== 3. SCOPE OF WORKS ===================
 E.append(h1("3", "Scope of Works"))
 E.append(Paragraph(
     "The scope of work includes the following structures and marine assets, with detailed scope "
     "prescribed structure-wise in the sections that follow:", lead))
+E.append(h2("Scope Includes"))
 E.append(blist([
     "Floating Docks A, B, C, D and K, and the Slipway Pontoon.",
     "Main Wave Breaker structure.",
@@ -283,25 +371,25 @@ E.append(Paragraph(
     "The detailed, structure-wise scope of work for each of the above assets is set out in "
     "Sections 4 through 11 of this submittal.", body))
 
-# ---------- 4. GANGWAY REHABILITATION ----------
+# =================== 4. GANGWAY REHABILITATION ===================
 E.append(h1("4", "Gangway Rehabilitation Works"))
 E.append(applic_p("Dock A, B, C, D, K &amp; Slipway Pontoon"))
-E.append(h2("4.1", "Timber Works"))
+E.append(h2("4.1  Timber Works"))
 E.append(blist([
     "Clean, prepare, sand and apply marine-grade protective coating to all gangway timber planks.",
     "Replace any damaged timber sections identified during execution.",
 ]))
-E.append(h2("4.2", "Roller System"))
+E.append(h2("4.2  Roller System"))
 E.append(blist([
     "Remove and replace damaged gangway rollers.",
     "Supply additional PVC rollers as operational spare stock.",
 ]))
-E.append(h2("4.3", "Teflon Wear Protection"))
+E.append(h2("4.3  Teflon Wear Protection"))
 E.append(blist([
     "Remove damaged gangway flip protection pads.",
     "Supply and install new marine-grade Teflon wear pads.",
 ]))
-E.append(h2("4.4", "Structural Steel Rehabilitation"))
+E.append(h2("4.4  Structural Steel Rehabilitation"))
 E.append(Paragraph("Where applicable, the Contractor shall:", lead))
 E.append(blist([
     "Clean steel surfaces by mechanical preparation or approved blasting method.",
@@ -309,14 +397,14 @@ E.append(blist([
     "Apply approved marine-grade anti-corrosion coating system.",
     "Repaint gangway H-beam support structures.",
 ]))
-E.append(h2("4.5", "Anchor Bolt Replacement"))
+E.append(h2("4.5  Anchor Bolt Replacement"))
 E.append(Paragraph("Where applicable, the Contractor shall:", lead))
 E.append(blist([
     "Remove corroded foundation bolts and nuts.",
     "Supply and install new stainless steel or approved galvanized anchor bolts.",
     "Upgrade bolt sizing where specified to improve structural stability.",
 ]))
-E.append(h2("4.6", "Electrical Safety Improvements"))
+E.append(h2("4.6  Electrical Safety Improvements"))
 E.append(Paragraph("The Contractor shall:", lead))
 E.append(blist([
     "Install weatherproof protection for all exposed dock gate electrical components.",
@@ -324,7 +412,7 @@ E.append(blist([
     "Inspect and rectify electrical grounding (earthing) systems for all gangways.",
     "Test and certify grounding resistance values following completion.",
 ]))
-E.append(h2("4.7", "Cable Tray Works (Docks D and K)"))
+E.append(h2("4.7  Cable Tray Works (Docks D and K)"))
 E.append(Paragraph("The Contractor shall:", lead))
 E.append(blist([
     "Secure under-gangway cable trays using approved marine-grade support systems.",
@@ -333,26 +421,25 @@ E.append(blist([
 ]))
 E.append(Paragraph("Based on requirements identified across all dock gangways.", body))
 
-# ---------- 5. PONTOON JOINT PLATE REPAIRS ----------
+# =================== 5. PONTOON JOINT PLATE REPAIRS ===================
 E.append(h1("5", "Pontoon Joint Plate Repairs"))
 E.append(applic_p("Dock A, B, C, D, K"))
-E.append(h2("5.1", "Preferred Method (Option A)"))
+E.append(h2("5.1  Preferred Method (Option A)"))
 E.append(blist([
     "Remove damaged joint plates.",
     "Drill two additional fixing holes on site.",
     "Install new fixings into pontoon concrete structure using approved plastic grips and marine-grade bolts.",
     "Seal all abandoned holes with approved marine repair compound.",
 ]))
-E.append(h2("5.2", "Alternative Method (Option B)"))
+E.append(h2("5.2  Alternative Method (Option B)"))
 E.append(blist(["Weld four support bolts to joint plates where approved by JYC."]))
-E.append(Paragraph("Joint Plate Quantities", micro))
+E.append(micro("Joint Plate Quantities"))
 E.append(qty_table(
     ["Dock", "Quantity"],
     [["Dock A", "16"], ["Dock B", "30"], ["Dock C", "18"], ["Dock D", "24"], ["Dock K", "16"]],
-    ["Total", "104 Joint Plates"],
-))
+    ["Total", "104 Joint Plates"]))
 
-# ---------- 6. PONTOON SURFACE & PILE REFURB ----------
+# =================== 6. PONTOON SURFACE & PILE REFURB ===================
 E.append(h1("6", "Pontoon Surface and Pile Refurbishment"))
 E.append(applic_p("Dock A, B, C, K &amp; Slipway Pontoon"))
 E.append(Paragraph("The Contractor shall:", lead))
@@ -365,14 +452,13 @@ E.append(blist([
     "Provide coating system data sheets and warranty information.",
 ]))
 
-# ---------- 7. FIBERGLASS PILE CAP ----------
+# =================== 7. FIBERGLASS PILE CAP ===================
 E.append(h1("7", "Fiberglass Pile Cap Replacement"))
 E.append(Paragraph("The Contractor shall supply and install new fiberglass pile caps as follows:", lead))
 E.append(qty_table(
     ["Location", "Quantity"],
     [["Dock A", "9"], ["Dock B", "13"], ["Dock C", "9"], ["Dock D", "9"], ["Dock K", "5"]],
-    ["Total", "45 Pile Caps"],
-))
+    ["Total", "45 Pile Caps"]))
 E.append(Paragraph("The Contractor shall:", lead))
 E.append(blist([
     "Remove existing damaged pile caps.",
@@ -380,7 +466,7 @@ E.append(blist([
     "Install and secure pile caps in accordance with manufacturer recommendations.",
 ]))
 
-# ---------- 8. PILE BRACKET & WEAR PAD ----------
+# =================== 8. PILE BRACKET & WEAR PAD ===================
 E.append(h1("8", "Pile Bracket and Wear Pad Repairs"))
 E.append(applic_p("Dock D &amp; K"))
 E.append(Paragraph("The Contractor shall:", lead))
@@ -391,33 +477,33 @@ E.append(blist([
     "Rectify bracket positioning to prevent premature wear.",
     "Supply spare wear pads for future maintenance.",
 ]))
-E.append(Paragraph("Minimum Quantity", micro))
+E.append(micro("Minimum Quantity"))
 E.append(blist(["10 wear pads per dock, inclusive of spare stock."]))
 
-# ---------- 9. WAVE BREAKER & NAV POLE ----------
+# =================== 9. WAVE BREAKER & NAV POLE ===================
 E.append(h1("9", "Main Wave Breaker and Navigation Pole Rehabilitation"))
 E.append(Paragraph("The Contractor shall carry out the following works:", lead))
-E.append(h2("9.1", "Wave Breaker"))
+E.append(h2("9.1  Wave Breaker"))
 E.append(blist([
     "Prepare exposed steel surfaces.",
     "Remove corrosion.",
     "Apply approved marine anti-corrosion coating system.",
     "Repaint complete wave breaker structure.",
 ]))
-E.append(h2("9.2", "Navigation Poles"))
+E.append(h2("9.2  Navigation Poles"))
 E.append(blist([
     "Remove corrosion.",
     "Repaint navigation poles.",
     "Replace heavily corroded foundation anchor bolts.",
 ]))
-E.append(h2("9.3", "Manhole Repair"))
+E.append(h2("9.3  Manhole Repair"))
 E.append(blist([
     "Remove temporary plywood cover.",
     "Supply and install permanent marine-grade manhole cover.",
     "Reinstate surrounding area.",
 ]))
 
-# ---------- 10. QUAY WALL ----------
+# =================== 10. QUAY WALL ===================
 E.append(h1("10", "Quay Wall Surface Repainting"))
 E.append(Paragraph("The Contractor shall:", lead))
 E.append(blist([
@@ -427,7 +513,7 @@ E.append(blist([
     "Repaint quay wall top surfaces only.",
 ]))
 
-# ---------- 11. SLIPWAY PONTOON STRUCTURAL ----------
+# =================== 11. SLIPWAY PONTOON STRUCTURAL ===================
 E.append(h1("11", "Slipway Pontoon Structural Repairs"))
 E.append(Paragraph("The Contractor shall:", lead))
 E.append(blist([
@@ -437,11 +523,10 @@ E.append(blist([
     "Reinstate concrete using approved marine repair materials.",
     "Ensure structural integrity and long-term durability of the installation.",
 ]))
-
-E.append(Spacer(1, 12))
-E.append(HRFlowable(width="40%", thickness=0.8, color=ACCENT, hAlign="CENTER", spaceAfter=6))
+E.append(Spacer(1, 14))
+E.append(HRFlowable(width="38%", thickness=1.0, color=CYAN, hAlign="CENTER", spaceAfter=6))
 E.append(Paragraph("— End of Technical Submittal —",
-                   S("end", fontName="Helvetica-Oblique", fontSize=9, textColor=LIGHT,
+                   S("end", fontName="Helvetica-Oblique", fontSize=9, textColor=SOFTGREY,
                      alignment=TA_CENTER)))
 
 doc.build(E)
