@@ -17,7 +17,7 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.platypus import (
     BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table, TableStyle,
-    ListFlowable, ListItem, NextPageTemplate, PageBreak, HRFlowable, Image,
+    ListFlowable, ListItem, NextPageTemplate, PageBreak, HRFlowable, Image, KeepTogether,
 )
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib.utils import ImageReader
@@ -32,6 +32,8 @@ SELA_IMG = os.path.join(ASSET, "sela_logo.png")
 
 SRC_MARINE = os.path.join(HERE, "Marine Structure Rehabilitation - Technical Submittal.pdf")
 SRC_GANGWAY = os.path.join(HERE, "Technical Submittal Skylance- Gangway Cable Tray Repairs Sela JYC.pdf")
+SRC_CABLE16 = os.path.join(HERE, "1x16 mm² NCU-PVC 450-750 V (TD).pdf")
+SRC_CABLE70 = os.path.join(HERE, "1x70 mm² NCU-PVC 450-750 V (TD).pdf")
 
 OUT = os.path.join(HERE, "Technical Submittal - Marina Infrastructure Maintenance and Rehabilitation Works (Skylance).pdf")
 BODY = os.path.join(HERE, "_body_main.pdf")
@@ -356,7 +358,9 @@ def content_flowables():
         "corroded and deformed with damaged or missing supports (notably Docks D and K). The proposed scope "
         "comprises removal of the affected cable tray sections and supports, supply and installation of new "
         "marine-grade cable tray and approved support systems of matching size and material, and reinstatement "
-        "of the cabling with adequate securing to restore safe, protected cable routing and alignment.", body))
+        "of the cabling with adequate securing to restore safe, protected cable routing and alignment. "
+        "Technical data sheets for the proposed replacement power cables (1×16 mm² and 1×70 mm² "
+        "NCU-PVC 450/750 V to IEC 60227) are provided in Appendix D.", body))
 
     # 5. JOINT PLATES
     E.append(h1("5", "Pontoon Joint Plate Repairs"))
@@ -564,14 +568,17 @@ def content_flowables():
     ]))
 
     # 15. APPENDICES (register; original pages embedded after this body)
-    E.append(h1("15", "Appendices"))
-    E.append(Paragraph("The following supporting documents are reproduced in full on the pages that follow "
-                       "this section, in the order listed:", lead))
-    E.append(spec_table(["Appendix", "Contents"],
-                        [["A", "Product Data Sheets — Hempel, Jotun, REPCON and CEMTEC products (A1–A13)"],
-                         ["B", "Gangway Drawings — General Arrangement / Repair Details"],
-                         ["C", "Hilti Anchor System Technical Data — HIT-HY 200-R V3 Injection Mortar"]],
-                        [0.16, 0.84]))
+    E.append(KeepTogether([
+        h1("15", "Appendices"),
+        Paragraph("The following supporting documents are reproduced in full on the pages that follow "
+                  "this section, in the order listed:", lead),
+        spec_table(["Appendix", "Contents"],
+                   [["A", "Product Data Sheets — Hempel, Jotun, REPCON and CEMTEC products (A1–A13)"],
+                    ["B", "Gangway Drawings — General Arrangement / Repair Details"],
+                    ["C", "Hilti Anchor System Technical Data — HIT-HY 200-R V3 Injection Mortar"],
+                    ["D", "Cable Technical Data Sheets — 1×16 mm² and 1×70 mm² NCU-PVC 450/750 V (IEC 60227)"]],
+                   [0.16, 0.84]),
+    ]))
     return E
 
 
@@ -740,6 +747,7 @@ n_main = fitz.open(BODY).page_count
 A_div = n_main + 1
 B_div = A_div + 1 + 40          # +divA +40 marine sheets
 C_div = B_div + 1 + 4           # +divB +4 gangway drawings
+D_div = C_div + 1 + 53          # +divC +53 Hilti pages
 
 # pass 2: real page numbers
 toc_pass2 = []
@@ -748,7 +756,8 @@ for num, title in SECTIONS:
 build_body(toc_pass2, BODY)
 
 # dividers
-DA = os.path.join(HERE, "_divA.pdf"); DB = os.path.join(HERE, "_divB.pdf"); DC = os.path.join(HERE, "_divC.pdf")
+DA = os.path.join(HERE, "_divA.pdf"); DB = os.path.join(HERE, "_divB.pdf")
+DC = os.path.join(HERE, "_divC.pdf"); DD = os.path.join(HERE, "_divD.pdf")
 build_divider("A", "Product Data Sheets",
               ["Hempel, Jotun, REPCON and CEMTEC product data sheets (Refs A1–A13).",
                "Referenced throughout Sections 4, 6, 9, 10 and 12 of this submittal."], A_div, DA)
@@ -758,6 +767,9 @@ build_divider("B", "Gangway Drawings",
 build_divider("C", "Hilti Anchor System Technical Data",
               ["Hilti HIT-HY 200-R V3 injection mortar anchor system.",
                "Supports the gangway fixing anchor bolt works (Section 4.7)."], C_div, DC)
+build_divider("D", "Cable Technical Data Sheets",
+              ["1×16 mm² and 1×70 mm² NCU-PVC 450/750 V power cables (IEC 60227).",
+               "Supports the cable tray and cabling reinstatement works (Section 4.9)."], D_div, DD)
 
 # assemble final
 final = fitz.open()
@@ -768,13 +780,16 @@ final.insert_pdf(fitz.open(DB))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=3, to_page=6)    # pp 4-7 drawings
 final.insert_pdf(fitz.open(DC))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=7, to_page=59)   # pp 8-60 Hilti
+final.insert_pdf(fitz.open(DD))
+final.insert_pdf(fitz.open(SRC_CABLE16))                            # 1x16 mm² cable TD
+final.insert_pdf(fitz.open(SRC_CABLE70))                            # 1x70 mm² cable TD
 final.save(OUT)
 print("MERGED PDF:", OUT)
 print("body pages:", n_main, "| total pages:", final.page_count)
-print("Appendix A div page:", A_div, "B:", B_div, "C:", C_div)
+print("Appendix A div:", A_div, "B:", B_div, "C:", C_div, "D:", D_div)
 
 # cleanup temp files
-for f in (BODY, DA, DB, DC):
+for f in (BODY, DA, DB, DC, DD):
     try:
         os.remove(f)
     except OSError:
