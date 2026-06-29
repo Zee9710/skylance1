@@ -255,7 +255,7 @@ def content_flowables():
         "The objective of this scope of work is to restore structural integrity, improve operational "
         "safety and appearance, prevent further corrosion and deterioration, and extend the service life "
         "of the marina assets through comprehensive maintenance, repair and protective-coating works.", body))
-    E.append(h2("In delivering the works, we shall:"))
+    E.append(h2("In delivering the works, the Contractor will:"))
     E.append(blist([
         "Conduct a detailed site survey and verification of quantities prior to commencement.",
         "Supply all labour, supervision, tools, equipment, materials, consumables and marine access equipment required.",
@@ -334,7 +334,7 @@ def content_flowables():
     ]))
 
     E.append(h2("4.6  Structural Steel Rehabilitation and Coating"))
-    E.append(Paragraph("Where applicable, we shall clean steel surfaces by mechanical "
+    E.append(Paragraph("Where applicable, the Contractor will clean steel surfaces by mechanical "
                        "preparation or approved blasting method, remove corrosion and contaminants, repaint "
                        "the gangway H-beam support structures and apply the approved marine-grade "
                        "anti-corrosion coating system below (or equivalent):", lead))
@@ -392,7 +392,7 @@ def content_flowables():
     # 6. PONTOON SURFACE & PILE
     E.append(h1("6", "Pontoon Surface and Pile Refurbishment"))
     E.append(applic_p("Dock A, B, C, K &amp; Slipway Pontoon"))
-    E.append(Paragraph("We shall prepare all pontoon surfaces, remove loose coatings and "
+    E.append(Paragraph("The Contractor will prepare all pontoon surfaces, remove loose coatings and "
                        "corrosion, repaint all pontoon surfaces, and prepare and repaint the marina piles, "
                        "providing coating system data sheets and warranty information.", body))
 
@@ -431,11 +431,11 @@ def content_flowables():
 
     # 7. FIBERGLASS PILE CAP
     E.append(h1("7", "Fiberglass Pile Cap Replacement"))
-    E.append(Paragraph("We shall supply and install new fiberglass pile caps as follows:", lead))
+    E.append(Paragraph("The Contractor will supply and install new fiberglass pile caps as follows:", lead))
     E.append(qty_table(["Location", "Quantity"],
                        [["Dock A", "9"], ["Dock B", "13"], ["Dock C", "9"], ["Dock D", "9"], ["Dock K", "5"]],
                        ["Total", "45 Pile Caps"]))
-    E.append(Paragraph("We shall:", lead))
+    E.append(Paragraph("The Contractor will:", lead))
     E.append(blist([
         "Remove existing damaged pile caps.",
         "Supply marine-grade fiberglass pile caps.",
@@ -445,7 +445,7 @@ def content_flowables():
     # 8. PILE BRACKET & WEAR PAD
     E.append(h1("8", "Pile Bracket and Wear Pad Repairs"))
     E.append(applic_p("Dock D &amp; K"))
-    E.append(Paragraph("We shall:", lead))
+    E.append(Paragraph("The Contractor will:", lead))
     E.append(blist([
         "Remove damaged wear pads.",
         "Supply and install replacement wear pads.",
@@ -504,7 +504,7 @@ def content_flowables():
 
     # 11. SLIPWAY PONTOON
     E.append(h1("11", "Slipway Pontoon Structural Repairs"))
-    E.append(Paragraph("We shall:", lead))
+    E.append(Paragraph("The Contractor will:", lead))
     E.append(blist([
         "Inspect and repair stainless steel H-beam attached to quay wall.",
         "Reinstall and secure foundation anchor bolts (refer Appendix C).",
@@ -566,7 +566,7 @@ def content_flowables():
 
     # 14. DELIVERABLES
     E.append(h1("14", "Deliverables"))
-    E.append(Paragraph("We shall provide:", lead))
+    E.append(Paragraph("The Contractor will provide:", lead))
     E.append(blist([
         "Detailed work programme.",
         "Material submittals and technical data sheets.",
