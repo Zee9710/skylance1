@@ -584,9 +584,9 @@ def content_flowables():
                   "this section, in the order listed:", lead),
         spec_table(["Appendix", "Contents"],
                    [["A", "Product Data Sheets — Hempel, Jotun, REPCON and CEMTEC products (A1–A13)"],
-                    ["B", "Gangway Drawings — General Arrangement / Repair Details"],
+                    ["B", "Gangway Drawings — GA / repair details (roller, ramp, shore pivot) and roller guide / wear plate"],
                     ["C", "Hilti Anchor System Technical Data — HIT-HY 200-R V3 Injection Mortar"],
-                    ["D", "Cable Tray Data — SS316 cable tray, covers, support channel and roller / wear plate drawings"],
+                    ["D", "Cable Tray Data — SS316 cable tray, covers and slotted C-channel support"],
                     ["E", "Cable Technical Data Sheets — 1×16 mm² and 1×70 mm² NCU-PVC 450/750 V (IEC 60227)"]],
                    [0.16, 0.84]),
     ]))
@@ -757,9 +757,9 @@ n_main = fitz.open(BODY).page_count
 # appendix page geometry in final document
 A_div = n_main + 1
 B_div = A_div + 1 + 40          # +divA +40 marine sheets
-C_div = B_div + 1 + 4           # +divB +4 gangway drawings
+C_div = B_div + 1 + 5           # +divB +5 gangway drawings (incl. roller guide / wear plate)
 D_div = C_div + 1 + 27          # +divC +27 Hilti pages (trimmed to core datasheet)
-E_div = D_div + 1 + 6           # +divD +6 cable tray data pages (gangway pp 55-60)
+E_div = D_div + 1 + 5           # +divD +5 cable tray data pages (gangway pp 55-59)
 
 # pass 2: real page numbers
 toc_pass2 = []
@@ -776,13 +776,14 @@ build_divider("A", "Product Data Sheets",
                "Referenced throughout Sections 4, 6, 9, 10 and 12 of this submittal."], A_div, DA)
 build_divider("B", "Gangway Drawings",
               ["General Arrangement and repair details for the gangway assemblies.",
-               "Pontoon roller, ramp, shore pivot and shore ramp drawings."], B_div, DB)
+               "Pontoon roller, ramp, shore pivot and shore ramp drawings.",
+               "Roller guide and wear plate details."], B_div, DB)
 build_divider("C", "Hilti Anchor System Technical Data",
               ["Hilti HIT-HY 200-R V3 injection mortar anchor system.",
                "Supports the gangway fixing anchor bolt works (Section 4.7)."], C_div, DC)
 build_divider("D", "Cable Tray Data",
               ["SS316 cable tray (P-Type) and covers — 300 mm and 400 mm sizes.",
-               "SS316 slotted C-channel support and roller guide / wear plate details.",
+               "SS316 slotted C-channel support.",
                "Supports the cable tray reinstatement works (Section 4.9)."], D_div, DD)
 build_divider("E", "Cable Technical Data Sheets",
               ["1×16 mm² and 1×70 mm² NCU-PVC 450/750 V power cables (IEC 60227).",
@@ -795,10 +796,11 @@ final.insert_pdf(fitz.open(DA))
 final.insert_pdf(fitz.open(SRC_MARINE), from_page=10, to_page=49)   # pp 11-50 (13 data sheets)
 final.insert_pdf(fitz.open(DB))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=3, to_page=6)    # pp 4-7 drawings
+final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=59, to_page=59)  # p 60 roller guide / wear plate drawing
 final.insert_pdf(fitz.open(DC))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=7, to_page=33)   # pp 8-34 Hilti (core datasheet only)
 final.insert_pdf(fitz.open(DD))                                     # App D divider: Cable Tray Data
-final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=54, to_page=59)  # pp 55-60 cable tray data & drawings
+final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=54, to_page=58)  # pp 55-59 cable tray data
 final.insert_pdf(fitz.open(DE))                                     # App E divider: Cable Technical Data Sheets
 final.insert_pdf(fitz.open(SRC_CABLE16))                            # 1x16 mm² cable TD
 final.insert_pdf(fitz.open(SRC_CABLE70))                            # 1x70 mm² cable TD
