@@ -366,8 +366,9 @@ def content_flowables():
         "comprises removal of the affected cable tray sections and supports, supply and installation of new "
         "marine-grade cable tray and approved support systems of matching size and material, and reinstatement "
         "of the cabling with adequate securing to restore safe, protected cable routing and alignment. "
-        "Technical data sheets for the proposed replacement power cables (1×16 mm² and 1×70 mm² "
-        "NCU-PVC 450/750 V to IEC 60227) are provided in Appendix D.", body))
+        "Cable tray fabrication data and drawings are provided in Appendix D, and the proposed "
+        "replacement power cable data sheets (1×16 mm² and 1×70 mm² NCU-PVC 450/750 V to "
+        "IEC 60227) in Appendix E.", body))
 
     # 5. JOINT PLATES
     E.append(h1("5", "Pontoon Joint Plate Repairs"))
@@ -583,7 +584,8 @@ def content_flowables():
                    [["A", "Product Data Sheets — Hempel, Jotun, REPCON and CEMTEC products (A1–A13)"],
                     ["B", "Gangway Drawings — General Arrangement / Repair Details"],
                     ["C", "Hilti Anchor System Technical Data — HIT-HY 200-R V3 Injection Mortar"],
-                    ["D", "Cable Technical Data Sheets — 1×16 mm² and 1×70 mm² NCU-PVC 450/750 V (IEC 60227)"]],
+                    ["D", "Cable Tray Data — SS316 cable tray, covers, support channel and roller / wear plate drawings"],
+                    ["E", "Cable Technical Data Sheets — 1×16 mm² and 1×70 mm² NCU-PVC 450/750 V (IEC 60227)"]],
                    [0.16, 0.84]),
     ]))
     return E
@@ -755,6 +757,7 @@ A_div = n_main + 1
 B_div = A_div + 1 + 40          # +divA +40 marine sheets
 C_div = B_div + 1 + 4           # +divB +4 gangway drawings
 D_div = C_div + 1 + 27          # +divC +27 Hilti pages (trimmed to core datasheet)
+E_div = D_div + 1 + 6           # +divD +6 cable tray data pages (gangway pp 55-60)
 
 # pass 2: real page numbers
 toc_pass2 = []
@@ -765,6 +768,7 @@ build_body(toc_pass2, BODY)
 # dividers
 DA = os.path.join(HERE, "_divA.pdf"); DB = os.path.join(HERE, "_divB.pdf")
 DC = os.path.join(HERE, "_divC.pdf"); DD = os.path.join(HERE, "_divD.pdf")
+DE = os.path.join(HERE, "_divE.pdf")
 build_divider("A", "Product Data Sheets",
               ["Hempel, Jotun, REPCON and CEMTEC product data sheets (Refs A1–A13).",
                "Referenced throughout Sections 4, 6, 9, 10 and 12 of this submittal."], A_div, DA)
@@ -774,9 +778,13 @@ build_divider("B", "Gangway Drawings",
 build_divider("C", "Hilti Anchor System Technical Data",
               ["Hilti HIT-HY 200-R V3 injection mortar anchor system.",
                "Supports the gangway fixing anchor bolt works (Section 4.7)."], C_div, DC)
-build_divider("D", "Cable Technical Data Sheets",
+build_divider("D", "Cable Tray Data",
+              ["SS316 cable tray (P-Type) and covers — 300 mm and 400 mm sizes.",
+               "SS316 slotted C-channel support and roller guide / wear plate details.",
+               "Supports the cable tray reinstatement works (Section 4.9)."], D_div, DD)
+build_divider("E", "Cable Technical Data Sheets",
               ["1×16 mm² and 1×70 mm² NCU-PVC 450/750 V power cables (IEC 60227).",
-               "Supports the cable tray and cabling reinstatement works (Section 4.9)."], D_div, DD)
+               "Supports the cabling reinstatement works (Section 4.9)."], E_div, DE)
 
 # assemble final
 final = fitz.open()
@@ -787,16 +795,18 @@ final.insert_pdf(fitz.open(DB))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=3, to_page=6)    # pp 4-7 drawings
 final.insert_pdf(fitz.open(DC))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=7, to_page=33)   # pp 8-34 Hilti (core datasheet only)
-final.insert_pdf(fitz.open(DD))
+final.insert_pdf(fitz.open(DD))                                     # App D divider: Cable Tray Data
+final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=54, to_page=59)  # pp 55-60 cable tray data & drawings
+final.insert_pdf(fitz.open(DE))                                     # App E divider: Cable Technical Data Sheets
 final.insert_pdf(fitz.open(SRC_CABLE16))                            # 1x16 mm² cable TD
 final.insert_pdf(fitz.open(SRC_CABLE70))                            # 1x70 mm² cable TD
 final.save(OUT)
 print("MERGED PDF:", OUT)
 print("body pages:", n_main, "| total pages:", final.page_count)
-print("Appendix A div:", A_div, "B:", B_div, "C:", C_div, "D:", D_div)
+print("Appendix A:", A_div, "B:", B_div, "C:", C_div, "D:", D_div, "E:", E_div)
 
 # cleanup temp files
-for f in (BODY, DA, DB, DC, DD):
+for f in (BODY, DA, DB, DC, DD, DE):
     try:
         os.remove(f)
     except OSError:
