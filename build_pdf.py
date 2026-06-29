@@ -15,7 +15,7 @@ from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib.utils import ImageReader
 
 ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "brand_assets")
-HEADER_IMG = os.path.join(ASSET, "header_cobrand.png")  # Skylance + SELA co-branded band
+HEADER_IMG = os.path.join(ASSET, "crop_header.png")  # Skylance house header (logo + CR)
 FOOTER_IMG = os.path.join(ASSET, "crop_footer.png")
 WM_IMG = os.path.join(ASSET, "crop_watermark.png")
 
@@ -31,15 +31,15 @@ HAIR = colors.HexColor("#CFCFCF")
 PAGE_W, PAGE_H = A4
 LM = RM = 1.9 * cm
 
-# co-branded header band geometry (image aspect 2481 x 442)
+# Skylance header band geometry (image aspect 2481 x 322)
 HDR_W = PAGE_W
-HDR_H = PAGE_W * (442.0 / 2481.0)
+HDR_H = PAGE_W * (322.0 / 2481.0)
 # footer band geometry (image 2481 x 141)
 FTR_W = PAGE_W
 FTR_H = PAGE_W * (141.0 / 2481.0)
 
 # content frame
-FRAME_TOP = PAGE_H - HDR_H - 6           # band already includes labels + cyan rule
+FRAME_TOP = PAGE_H - HDR_H - 20          # leave room for cyan rule under header
 FRAME_BOTTOM = FTR_H + 20                 # footer band + page-no line
 TM = PAGE_H - FRAME_TOP
 BM = FRAME_BOTTOM
@@ -176,11 +176,14 @@ def draw_brand(canvas, doc, cover=False):
                          width=tw, height=th, mask="auto")
     except Exception:
         pass
-    # co-branded header band: Skylance logo + CR (left), SELA logo (right),
-    # CONTRACTOR / CLIENT labels and cyan rule (all baked into the image).
-    # The cover page uses a standalone logo lockup instead of the band.
+    # Skylance house header band (logo + CR). The cover page uses a
+    # standalone logo lockup instead of the band.
     if not cover:
         canvas.drawImage(HEADER_IMG, 0, PAGE_H - HDR_H, width=HDR_W, height=HDR_H, mask="auto")
+        ry = PAGE_H - HDR_H - 12
+        canvas.setStrokeColor(CYAN)
+        canvas.setLineWidth(1.4)
+        canvas.line(LM, ry, PAGE_W - RM, ry)
     # footer band
     canvas.drawImage(FOOTER_IMG, 0, 0, width=FTR_W, height=FTR_H, mask="auto")
     # page-number line above footer band
