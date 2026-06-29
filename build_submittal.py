@@ -12,7 +12,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "brand_assets")
-HEADER_IMG = os.path.join(ASSET, "crop_header.png")
+HEADER_IMG = os.path.join(ASSET, "header_cobrand.png")  # Skylance + SELA co-branded band
 FOOTER_IMG = os.path.join(ASSET, "crop_footer.png")
 
 CYAN = RGBColor(0x26, 0xB8, 0xEF)
@@ -102,10 +102,8 @@ def build_header(section, full_w):
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(2)
     p.paragraph_format.space_before = Pt(0)
+    # co-branded band already includes CONTRACTOR/CLIENT labels + cyan rule
     p.add_run().add_picture(HEADER_IMG, width=full_w)
-    rule = h.add_paragraph()
-    rule.paragraph_format.space_before = Pt(2); rule.paragraph_format.space_after = Pt(0)
-    pborder(rule, "26B8EF", size=12, where="bottom", space=1)
 
 
 def build_footer(section, full_w):
