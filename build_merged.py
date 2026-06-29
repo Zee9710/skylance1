@@ -754,7 +754,7 @@ n_main = fitz.open(BODY).page_count
 A_div = n_main + 1
 B_div = A_div + 1 + 40          # +divA +40 marine sheets
 C_div = B_div + 1 + 4           # +divB +4 gangway drawings
-D_div = C_div + 1 + 53          # +divC +53 Hilti pages
+D_div = C_div + 1 + 27          # +divC +27 Hilti pages (trimmed to core datasheet)
 
 # pass 2: real page numbers
 toc_pass2 = []
@@ -786,7 +786,7 @@ final.insert_pdf(fitz.open(SRC_MARINE), from_page=10, to_page=49)   # pp 11-50 (
 final.insert_pdf(fitz.open(DB))
 final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=3, to_page=6)    # pp 4-7 drawings
 final.insert_pdf(fitz.open(DC))
-final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=7, to_page=59)   # pp 8-60 Hilti
+final.insert_pdf(fitz.open(SRC_GANGWAY), from_page=7, to_page=33)   # pp 8-34 Hilti (core datasheet only)
 final.insert_pdf(fitz.open(DD))
 final.insert_pdf(fitz.open(SRC_CABLE16))                            # 1x16 mm² cable TD
 final.insert_pdf(fitz.open(SRC_CABLE70))                            # 1x70 mm² cable TD
